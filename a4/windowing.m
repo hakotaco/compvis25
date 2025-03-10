@@ -1,30 +1,38 @@
 function [D] = windowing(Ia, Ib, r)
-	[h w ~] = size(Ia);
+  if size(Ia, 3) == 3
+    Ia = double(rgb2gray(Ia));
+    Ib = double(rgb2gray(Ib));
+  else
+    Ia = double(Ia);
+    Ib = double(Ib);
+  end
 
-	D = zeros(h, w);
+  [h, w, ~] = size(Ia);
 
-	idxs = -r:r;
+  D = zeros(h, w);
 
-	for ay = (r+1):(h-r)
-		ay
-		for ax =(r+1):(w-r)
-			Wa = Ia(idxs+ay, idxs+ax, :);
-			bwd = Inf; bwx = ax; bwy = ay;
+  idxs = -r:r;
 
-			by = ay;
-			for bx = (r+1):ax
-				Wb = Ib(idxs+by, idxs+bx, :);
-				d = sum((Wa - Wb).^2, "all");
-				if d < bwd 
-					bwd = d;
-					bwx = bx;
-					bwy = by;
-				end
-			end
+  for ay = (r+1):(h-r)
+    for ax =(r+1):(w-r)
+      Wa = Ia(idxs+ay, idxs+ax, :);
+      bwd = Inf; bwx = ax; bwy = ay;
 
-			sx = bwx - ax;
-			sy = bwy - ay;
-			D(ay,ax) = sqrt(sx^2 + sy^2); 
-		end
-	end
-	
+            by = ay;
+      for bx = ax:-1:max(r+1, ax-30)
+        Wb = Ib(idxs+ay, idxs+bx, :);
+        d = sum((Wa - Wb).^2, "all");
+        if d < bwd 
+          bwd = d;
+          bwx = bx;
+          bwy = by;
+        end
+      end
+
+      sx = bwx - ax;
+      sy = bwy - ay;
+      D(ay,ax) = sqrt(sx^2 + sy^2); 
+    end
+  end
+  
+
